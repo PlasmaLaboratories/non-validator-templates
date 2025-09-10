@@ -1,3 +1,7 @@
+PLASMA_CONSENSUS_VERSION="0.11.4"
+RETH_VERSION="v1.6.0"
+NETWORK="testnet"
+
 rm -rf ./node/execution
 rm -rf ./node/consensus
 
@@ -14,7 +18,6 @@ docker network create plasma
 
 # Read the enodes
 enodes=$(cat enodes.txt)
-network=testnet
 
 # Create jwt.hex
 openssl rand -hex 32 | tr -d '\n' > node/jwt.hex
@@ -31,10 +34,10 @@ docker \
   --platform linux/amd64 \
   --user "$(id -u):$(id -g)" \
   -v ./node:/node \
-  ghcr.io/plasmalaboratories/plasma-consensus:0.11.4 \
+  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli \
     dump-genesis \
-    --chain $network > ./node/$network.json
+    --chain $NETWORK > ./node/$NETWORK.json
 
 # Initialize Execution DB
 docker run \
@@ -42,9 +45,9 @@ docker run \
   -i \
   --user "$(id -u):$(id -g)" \
   -v ./node:/node \
-  ghcr.io/paradigmxyz/reth:v1.6.0 \
+  ghcr.io/paradigmxyz/reth:"$RETH_VERSION" \
     init \
-    --chain /node/$network.json \
+    --chain /node/$NETWORK.json \
     --datadir /node/execution \
     --log.file.directory /node/execution/log
 
@@ -55,10 +58,10 @@ docker run \
   --platform linux/amd64 \
   --user "$(id -u):$(id -g)" \
   -v ./node:/node \
-  ghcr.io/plasmalaboratories/plasma-consensus:0.11.4 \
+  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli \
     init \
-    --chain /node/$network.json \
+    --chain /node/$NETWORK.json \
     --data-dir /node/consensus
 
 # Initialize Consensus identity
@@ -68,7 +71,7 @@ docker run \
   --platform linux/amd64 \
   --user "$(id -u):$(id -g)" \
   -v ./node:/node \
-  ghcr.io/plasmalaboratories/plasma-consensus:0.11.4 \
+  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli peer-id \
     --identity-file-path /node/consensus/ec-secp256k1-non-validator.der > ./node/peer-id.txt
 
@@ -80,9 +83,9 @@ docker run \
   --name plasma-execution \
   -p 8551:8551 \
   -v ./node:/node \
-  ghcr.io/paradigmxyz/reth:v1.6.0 \
+  ghcr.io/paradigmxyz/reth:"$RETH_VERSION" \
     node \
-    --chain /node/$network.json \
+    --chain /node/$NETWORK.json \
     --datadir /node/execution \
     --trusted-peers "$enodes" \
     --authrpc.jwtsecret /node/jwt.hex \
@@ -102,6 +105,9 @@ docker run \
     --log.file.directory /node/execution/log
 
 # Run consensus node
+# 34070: p2p
+# 35070: rpc
+# 9001: metrics
 docker run \
   --network plasma \
   -d \
@@ -109,9 +115,11 @@ docker run \
   --user "$(id -u):$(id -g)" \
   --name plasma-consensus \
   -p 34070:34070 \
+  -p 35070:35070 \
+  -p 9001:9001 \
   -v ./node:/node \
   -v ./non-validator.toml:/node/non-validator.toml \
-  ghcr.io/plasmalaboratories/plasma-consensus:0.11.4 \
+  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli \
     observer \
     --config-path /node/non-validator.toml \
