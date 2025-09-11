@@ -1,0 +1,122 @@
+x-options: &options
+  NETWORK: mainnet
+
+services:
+  openssl-init:
+    image: docker.io/alpine/openssl:3.5.2@sha256:655d3849b676fdc7b19375c11ea62e4ae70a83179fb77206803c0199e3be2b15
+    entrypoint: ["/bin/sh"]
+    command: >
+      -c "
+        mkdir -p /node/consensus &&
+        mkdir -p /node/execution &&
+        openssl rand -hex 32 | tr -d '\n' > /node/jwt.hex &&
+        openssl ecparam -name secp256k1 -genkey -noout -out /node/consensus/ec-secp256k1-non-validator.pem &&
+        openssl ec -in /node/consensus/ec-secp256k1-non-validator.pem -outform DER -no_public -out /node/consensus/ec-secp256k1-non-validator.der
+      "
+    # container_name: openssl-init
+    volumes:
+      - ./node:/node:rw
+
+  init-consensus:
+    image: ghcr.io/plasmalaboratories/plasma-consensus:0.12.2
+    user: "0:0"
+    entrypoint: ["/bin/bash"]
+    command: >
+      -c "
+        plasma-cli dump-genesis --chain $NETWORK > /node/$NETWORK.json &&
+        plasma-cli init --chain /node/$NETWORK.json --data-dir /node/consensus &&
+        plasma-cli peer-id --identity-file-path /node/consensus/ec-secp256k1-non-validator.der > /node/peer-id.txt
+      "
+    # container_name: init-consensus
+    environment:
+      <<: *options
+    volumes:
+      - ./node:/node:rw
+    depends_on:
+      openssl-init:
+        condition: service_completed_successfully
+
+  init-execution:
+    image: ghcr.io/paradigmxyz/reth:v1.6.0
+    user: "0:0"
+    # entrypoint: ["/bin/bash"]
+    command: >
+        init --chain /node/$NETWORK.json --datadir /node/execution --log.file.directory /node/execution/log
+    # container_name: init-execution
+    environment:
+      <<: *options
+    volumes:
+      - ./node:/node:rw
+    depends_on:
+      openssl-init:
+        condition: service_completed_successfully
+
+  execution:
+    image: ghcr.io/paradigmxyz/reth:v1.6.0
+    user: "0:0"
+    entrypoint: ["/bin/bash"]
+    command: >
+      -c "
+        reth node
+        --chain /node/\$NETWORK.json
+        --datadir /node/execution
+        --trusted-peers \"\$(cat /tmp/enodes.txt)\"
+        --authrpc.jwtsecret /node/jwt.hex
+        --authrpc.addr 0.0.0.0
+        --authrpc.port 8551
+        --http
+        --http.addr 0.0.0.0
+        --http.api eth,net,web3,txpool,debug
+        --http.corsdomain '*'
+        -vvv
+        --color never
+        --rpc.gascap \"36000000\"
+        --txpool.gas-limit \"36000000\"
+        --txpool.blobpool-max-count \"0\"
+        --txpool.blobpool-max-size \"0\"
+        --txpool.blob-cache-size \"0\"
+        --log.file.directory /node/execution/log
+      "
+    # container_name: init-execution
+    environment:
+      <<: *options
+    volumes:
+      - ./node:/node:rw
+      - ./enodes.txt:/tmp/enodes.txt:ro
+    depends_on:
+      init-execution:
+        condition: service_completed_successfully
+
+  consensus:
+    image: ghcr.io/plasmalaboratories/plasma-consensus:0.12.2
+    user: "0:0"
+    entrypoint: ["/bin/bash"]
+    command: >
+      -c "
+        plasma-cli \
+          observer \
+          --config-path /tmp/non-validator.toml \
+          --no-color \
+          --disable-peer-scoring \
+          --timeout-stream-manager 10ms \
+          -vvv
+      "
+    # container_name: init-execution
+    environment:
+      <<: *options
+    volumes:
+      - ./node:/node:rw
+      - ./non-validator.toml:/tmp/non-validator.toml:ro
+    depends_on:
+      init-consensus:
+        condition: service_completed_successfully
+
+# volumes:
+#   jwt-secret:
+#   enode-urls:
+#   consensus-data:
+#   reth-data:
+
+networks:
+  plasma:
+    driver: bridge
