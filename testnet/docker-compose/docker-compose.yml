@@ -144,8 +144,8 @@ services:
       - ./non-validator.toml:/tmp/non-validator.toml:ro
       - genesis:/config:ro
       - jwt-secret:/jwt:ro
-      - ./node/identities:/node/identities:ro
-      - ./node/keys:/node/keys:ro
+      - ../shared/identities:/node/identities:ro
+      - ../shared/keys:/node/keys:ro
     depends_on:
       init-consensus:
         condition: service_completed_successfully
