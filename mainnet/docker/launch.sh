@@ -118,6 +118,8 @@ docker run \
   -p 35070:35070 \
   -p 9001:9001 \
   -v ./node:/node \
+  -v ../shared/keys:/node/keys \
+  -v ../shared/identities:/node/identities \
   -v ./non-validator.toml:/node/non-validator.toml \
   ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli \
