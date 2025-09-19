@@ -107,6 +107,11 @@ services:
           --log.file.directory /execution/log
     container_name: plasma-execution
     env_file: .env
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/8545 && exec 6<> /dev/tcp/localhost/8551"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
     volumes:
       - execution-data:/execution:rw
       - jwt-secret:/jwt:ro
@@ -142,6 +147,8 @@ services:
     depends_on:
       init-consensus:
         condition: service_completed_successfully
+      plasma-execution:
+        condition: service_healthy
 
 volumes:
   consensus-data:
