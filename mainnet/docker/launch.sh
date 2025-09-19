@@ -25,7 +25,6 @@ EOF
 # Arg parsing
 ###############################################################################
 parse_args() {
-  [[ $# -gt 0 ]] || { show_help; exit 1; }
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -h|--help) show_help; exit 0 ;;
@@ -34,7 +33,6 @@ parse_args() {
       --consensus-version) PLASMA_CONSENSUS_VERSION=${2:-}; shift 2 ;;
       --reth-version) RETH_VERSION=${2:-}; shift 2 ;;
       -d|--down) DOWN=true; shift ;;
-      -u|--up) UP=true; shift ;;
       *) die "Invalid option: $1" ;;
     esac
   done
