@@ -1,18 +1,61 @@
-PLASMA_CONSENSUS_VERSION="0.11.4"
-RETH_VERSION="v1.6.0"
-NETWORK="testnet"
+PLASMA_CONSENSUS_VERSION="0.12.4"
+RETH_VERSION="v1.7.0"
+NETWORK="mainnet"
 
-rm -rf ./node/execution
-rm -rf ./node/consensus
+log() { printf '%s %s\n' "[$(date +'%F %T')]" "$*" >&2; }
+die() { log "ERROR: $*"; exit 1; }
 
-rm ./node/jwt.hex
+# Help
+###############################################################################
+show_help() {
+  cat <<EOF
+Usage: $SCRIPT_NAME [OPTIONS]
+
+Options:
+  -h, --help                     Show this help and exit
+  -n, --network STR              devnet|testnet|mainnet
+  -c, --cleanup                  Cleanup previous deployment then exits
+  -d, --down                     Stop and remove the containers then exits
+  --consensus-version            Override for the plasma-consensus version
+  --reth-version                 Override for the reth version
+EOF
+}
+
+###############################################################################
+# Arg parsing
+###############################################################################
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) show_help; exit 0 ;;
+      -n|--network) NETWORK="${2:-}"; shift 2 ;;
+      --cleanup) CLEANUP=true; shift ;;
+      --consensus-version) PLASMA_CONSENSUS_VERSION=${2:-}; shift 2 ;;
+      --reth-version) RETH_VERSION=${2:-}; shift 2 ;;
+      -d|--down) DOWN=true; shift ;;
+      *) die "Invalid option: $1" ;;
+    esac
+  done
+}
+
+parse_args "$@"
+
+if [[ $DOWN == "true" ]]; then
+  log "Stopping and removing containers..."
+  docker rm -f plasma-execution plasma-consensus || true
+  exit 0
+fi
+
+if [[ "$CLEANUP" == "true" ]]; then
+  log "Cleaning up previous deployment..."
+  docker rm -f plasma-execution plasma-consensus || true
+  rm -rf ./node
+  exit 0
+fi
 
 mkdir -p node
 mkdir -p node/execution
 mkdir -p node/consensus
-
-docker rm -f plasma-execution
-docker rm -f plasma-consensus
 
 docker network create plasma
 
@@ -20,50 +63,49 @@ docker network create plasma
 enodes=$(cat enodes.txt)
 
 # Create jwt.hex
-openssl rand -hex 32 | tr -d '\n' > node/jwt.hex
+if [[ ! -f node/jwt.hex ]]; then
+  openssl rand -hex 32 | tr -d '\n' > node/jwt.hex
+fi
 
 # Create consensus identity
-openssl ecparam -name secp256k1 -genkey -noout -out ./node/consensus/ec-secp256k1-non-validator.pem
-openssl ec -in ./node/consensus/ec-secp256k1-non-validator.pem -outform DER -no_public -out ./node/consensus/ec-secp256k1-non-validator.der
+if [[ ! -f ./node/consensus/ec-secp256k1-non-validator.pem ]]; then
+  openssl ecparam -name secp256k1 -genkey -noout -out ./node/consensus/ec-secp256k1-non-validator.pem
+  openssl ec -in ./node/consensus/ec-secp256k1-non-validator.pem -outform DER -no_public -out ./node/consensus/ec-secp256k1-non-validator.der
+fi
 
-# Dump genesis
-docker \
-  run \
-  --rm \
-  -i \
-  --platform linux/amd64 \
-  --user "$(id -u):$(id -g)" \
-  -v ./node:/node \
-  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
-    plasma-cli \
-    dump-genesis \
-    --chain $NETWORK > ./node/$NETWORK.json
+# Copy genesis
+cp ../shared/$NETWORK.json ./node/$NETWORK.json
 
 # Initialize Execution DB
-docker run \
-  --rm \
-  -i \
-  --user "$(id -u):$(id -g)" \
-  -v ./node:/node \
-  ghcr.io/paradigmxyz/reth:"$RETH_VERSION" \
-    init \
-    --chain /node/$NETWORK.json \
-    --datadir /node/execution \
-    --log.file.directory /node/execution/log
+if [[ ! -d ./node/execution/db ]]; then
+  log "Initializing execution database..."
+  docker run \
+    --rm \
+    -i \
+    --user "$(id -u):$(id -g)" \
+    -v ./node:/node \
+    ghcr.io/paradigmxyz/reth:"$RETH_VERSION" \
+      init \
+      --chain /node/$NETWORK.json \
+      --datadir /node/execution \
+      --log.file.directory /node/execution/log
+fi
 
 # Initialize Consensus DB
-docker run \
-  --rm \
-  -i \
-  --platform linux/amd64 \
-  --user "$(id -u):$(id -g)" \
-  -v ./node:/node \
-  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
-    plasma-cli \
-    init \
-    --chain /node/$NETWORK.json \
-    --data-dir /node/consensus
-
+if [[ ! -d ./node/consensus/data.mdbx ]]; then
+  log "Initializing consensus database..."
+  docker run \
+    --rm \
+    -i \
+    --platform linux/amd64 \
+    --user "$(id -u):$(id -g)" \
+    -v ./node:/node \
+    ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
+      plasma-cli \
+      init \
+      --chain /node/$NETWORK.json \
+      --data-dir /node/consensus
+fi
 # Initialize Consensus identity
 docker run \
   --rm \
