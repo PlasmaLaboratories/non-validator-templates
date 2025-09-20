@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 1,
+  "id": 2,
   "links": [],
   "panels": [
     {
@@ -453,89 +453,6 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "How many blocks behind the leading peer each other peer is",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-green",
-                "value": 0
-              },
-              {
-                "color": "yellow",
-                "value": 25
-              },
-              {
-                "color": "dark-red",
-                "value": 30
-              }
-            ]
-          },
-          "unit": "Block(s)"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 25
-      },
-      "id": 50,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PAE45454D0EDB9216"
-          },
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "exemplar": false,
-          "expr": "scalar(max(max by(instance) (reth_blockchain_tree_canonical_chain_height))) - (max by(instance) (reth_blockchain_tree_canonical_chain_height))",
-          "format": "time_series",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": true,
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "C",
-          "useBackend": false
-        }
-      ],
-      "title": "Blocks behind",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -574,7 +491,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 25
       },
       "id": 22,
       "maxDataPoints": 50,
@@ -608,9 +525,9 @@
           "expr": "max by(instance) (rate(reth_blockchain_tree_canonical_chain_height[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "instant": true,
-          "legendFormat": "{{role}}",
-          "range": false,
+          "instant": false,
+          "legendFormat": "{{instance}}",
+          "range": true,
           "refId": "A",
           "useBackend": false
         }
@@ -621,21 +538,10 @@
           "id": "reduce",
           "options": {
             "includeTimeField": false,
-            "labelsToFields": false,
             "mode": "reduceFields",
             "reducers": [
               "max"
             ]
-          }
-        },
-        {
-          "id": "labelsToFields",
-          "options": {
-            "keepLabels": [
-              "role"
-            ],
-            "mode": "columns",
-            "valueLabel": "role"
           }
         },
         {
@@ -713,7 +619,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 32
       },
       "id": 52,
       "maxDataPoints": 100,
@@ -754,7 +660,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 39
       },
       "id": 53,
       "panels": [],
@@ -785,7 +691,7 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 40
       },
       "id": 54,
       "maxDataPoints": 100,
@@ -864,7 +770,7 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 44
       },
       "id": 56,
       "maxDataPoints": 100,
@@ -925,7 +831,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 48
       },
       "id": 58,
       "panels": [],
@@ -1031,7 +937,7 @@
         "h": 3,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 49
       },
       "id": 18,
       "maxDataPoints": 50,
@@ -1063,7 +969,7 @@
           "expr": "max by(instance) (reth_network_connected_peers)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1091,8 +997,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -1100,13 +1006,16 @@
             },
             "insertNulls": false,
             "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1137,7 +1046,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 60
+        "y": 52
       },
       "id": 60,
       "maxDataPoints": 100,
@@ -1162,7 +1071,7 @@
           "expr": "max by(instance) (rate(reth_network_pending_session_failures[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1190,8 +1099,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -1205,7 +1114,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1236,7 +1145,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 60
+        "y": 52
       },
       "id": 59,
       "maxDataPoints": 100,
@@ -1261,7 +1170,7 @@
           "expr": "max by(instance) (rate(reth_network_closed_sessions[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1289,7 +1198,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 5,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1304,7 +1213,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1335,7 +1244,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 68
+        "y": 60
       },
       "id": 63,
       "maxDataPoints": 100,
@@ -1360,7 +1269,7 @@
           "expr": "sum by(instance) (rate(reth_network_total_outgoing_peer_messages_dropped[$__rate_interval])) + (sum by(instance) (rate(reth_network_egress_peer_channel_full[$__rate_interval])))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1403,7 +1312,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1434,7 +1343,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 68
+        "y": 60
       },
       "id": 61,
       "maxDataPoints": 100,
@@ -1459,7 +1368,7 @@
           "expr": "max by(instance) (rate(reth_network_ping_timeout[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1487,8 +1396,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -1502,7 +1411,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1533,7 +1442,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 76
+        "y": 68
       },
       "id": 62,
       "maxDataPoints": 100,
@@ -1558,7 +1467,7 @@
           "expr": "sum by(instance) (rate(reth_network_invalid_messages_received[$__rate_interval])) + (sum by(instance) (rate(reth_network_unsolicited_transactions[$__rate_interval])))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1586,8 +1495,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "opacity",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -1601,7 +1510,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1632,7 +1541,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 76
+        "y": 68
       },
       "id": 24,
       "maxDataPoints": 100,
@@ -1676,7 +1585,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 84
+        "y": 76
       },
       "id": 79,
       "panels": [],
@@ -1751,7 +1660,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 85
+        "y": 77
       },
       "id": 77,
       "maxDataPoints": 50,
@@ -1783,7 +1692,7 @@
           "expr": "max by(instance) (plasma_networking_connections_active{direction=~\"$direction\"})",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1860,7 +1769,7 @@
         "h": 4,
         "w": 12,
         "x": 12,
-        "y": 85
+        "y": 77
       },
       "id": 82,
       "maxDataPoints": 50,
@@ -1892,7 +1801,7 @@
           "expr": "max by(instance) (plasma_networking_synchronization_active_streams)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1925,7 +1834,7 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 89
+        "y": 81
       },
       "id": 83,
       "maxDataPoints": 100,
@@ -1981,7 +1890,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2009,7 +1918,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 5,
+            "fillOpacity": 10,
             "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
@@ -2024,7 +1933,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -2080,7 +1989,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 93
+        "y": 85
       },
       "id": 80,
       "maxDataPoints": 50,
@@ -2109,7 +2018,7 @@
           "expr": "max by(instance) (rate(plasma_networking_connections_attempt_errors_total{direction=~\"$direction\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2142,7 +2051,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 93
+        "y": 85
       },
       "id": 84,
       "maxDataPoints": 50,
@@ -2195,7 +2104,7 @@
           "expr": "histogram_quantile(0.95, sum by(le) (rate(plasma_networking_connections_duration_seconds_bucket[$__rate_interval])))",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2223,7 +2132,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 5,
+            "fillOpacity": 10,
             "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
@@ -2238,7 +2147,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -2294,7 +2203,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 101
+        "y": 93
       },
       "id": 86,
       "maxDataPoints": 50,
@@ -2323,7 +2232,7 @@
           "expr": "max by(instance) (rate(plasma_networking_messages_total{direction=~\"$direction\", kind=~\"$message_kind\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2351,7 +2260,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 5,
+            "fillOpacity": 10,
             "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
@@ -2366,7 +2275,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -2421,7 +2330,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 101
+        "y": 93
       },
       "id": 81,
       "maxDataPoints": 50,
@@ -2465,7 +2374,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 109
+        "y": 101
       },
       "id": 64,
       "panels": [],
@@ -2496,7 +2405,7 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 110
+        "y": 102
       },
       "id": 65,
       "maxDataPoints": 50,
@@ -2584,7 +2493,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 114
+        "y": 106
       },
       "id": 57,
       "options": {
@@ -2629,7 +2538,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 122
+        "y": 114
       },
       "id": 38,
       "panels": [],
@@ -2701,7 +2610,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 123
+        "y": 115
       },
       "id": 35,
       "maxDataPoints": 50,
@@ -2730,7 +2639,7 @@
           "expr": "max by(instance) (reth_transaction_pool_total_transactions)",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2804,7 +2713,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 123
+        "y": 115
       },
       "id": 39,
       "maxDataPoints": 50,
@@ -2907,7 +2816,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 131
+        "y": 123
       },
       "id": 69,
       "maxDataPoints": 100,
@@ -2932,7 +2841,7 @@
           "expr": "max by(instance) (reth_transaction_pool_pending_pool_transactions)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2960,8 +2869,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "opacity",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -2975,7 +2884,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -3006,7 +2915,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 131
+        "y": 123
       },
       "id": 37,
       "maxDataPoints": 50,
@@ -3110,7 +3019,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 139
+        "y": 131
       },
       "id": 70,
       "options": {
@@ -3134,7 +3043,7 @@
           "expr": "max by(instance) (reth_transaction_pool_basefee_pool_transactions)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -3162,8 +3071,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 5,
-            "gradientMode": "opacity",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -3177,7 +3086,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 3600000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -3208,7 +3117,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 139
+        "y": 131
       },
       "id": 36,
       "maxDataPoints": 50,
@@ -3311,7 +3220,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 147
+        "y": 139
       },
       "id": 68,
       "options": {
@@ -3335,7 +3244,7 @@
           "expr": "max by(instance) (reth_transaction_pool_queued_pool_transactions)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -3408,7 +3317,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 147
+        "y": 139
       },
       "id": 44,
       "maxDataPoints": 50,
@@ -3510,7 +3419,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 155
+        "y": 147
       },
       "id": 40,
       "maxDataPoints": 50,
@@ -3612,7 +3521,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 155
+        "y": 147
       },
       "id": 41,
       "maxDataPoints": 50,
@@ -3714,7 +3623,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 163
+        "y": 155
       },
       "id": 42,
       "maxDataPoints": 50,
@@ -3743,7 +3652,7 @@
           "expr": "max by(instance) (reth_transaction_pool_total_eip4844_transactions)",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -3816,7 +3725,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 163
+        "y": 155
       },
       "id": 43,
       "maxDataPoints": 50,
@@ -3860,7 +3769,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 171
+        "y": 163
       },
       "id": 11,
       "panels": [],
@@ -3912,7 +3821,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 172
+        "y": 164
       },
       "id": 30,
       "options": {
@@ -3943,7 +3852,7 @@
           "expr": "(container_fs_usage_bytes{name=\"plasma-consensus\"} * 100) / container_fs_limit_bytes{name=\"plasma-consensus\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -4030,7 +3939,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 172
+        "y": 164
       },
       "id": 46,
       "maxDataPoints": 24,
@@ -4134,7 +4043,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 180
+        "y": 172
       },
       "id": 3,
       "maxDataPoints": 100,
@@ -4160,7 +4069,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "max by(name) (label_replace(container_memory_working_set_bytes{name=\"plasma-consensus\"}, \"role\", \"$1\", \"namespace\", \"$extract_short_name\"))",
+          "expr": "max by(name) (label_replace(container_memory_working_set_bytes{name=\"plasma-consensus\"}, \"instance\", \"$1\", \"namespace\", \"$extract_short_name\"))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{namespace}}",
@@ -4238,7 +4147,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 180
+        "y": 172
       },
       "id": 27,
       "maxDataPoints": 100,
@@ -4340,7 +4249,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 188
+        "y": 180
       },
       "id": 2,
       "maxDataPoints": 100,
@@ -4469,7 +4378,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 195
+        "y": 187
       },
       "id": 5,
       "interval": "1m",
@@ -4577,7 +4486,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 195
+        "y": 187
       },
       "id": 9,
       "interval": "1m",
@@ -4685,7 +4594,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 203
+        "y": 195
       },
       "id": 7,
       "interval": "1m",
@@ -4792,7 +4701,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 203
+        "y": 195
       },
       "id": 12,
       "interval": "1m",
@@ -4840,7 +4749,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 211
+        "y": 203
       },
       "id": 10,
       "panels": [],
@@ -4892,7 +4801,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 212
+        "y": 204
       },
       "id": 87,
       "options": {
@@ -4923,7 +4832,7 @@
           "expr": "(container_fs_usage_bytes{name=\"plasma-execution\"} * 100) / container_fs_limit_bytes{name=\"plasma-execution\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "{{role}}",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -5010,7 +4919,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 212
+        "y": 204
       },
       "id": 88,
       "maxDataPoints": 24,
@@ -5114,7 +5023,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 220
+        "y": 212
       },
       "id": 89,
       "maxDataPoints": 100,
@@ -5140,7 +5049,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "max by(name) (label_replace(container_memory_working_set_bytes{name=\"plasma-execution\"}, \"role\", \"$1\", \"namespace\", \"$extract_short_name\"))",
+          "expr": "max by(name) (label_replace(container_memory_working_set_bytes{name=\"plasma-execution\"}, \"instance\", \"$1\", \"namespace\", \"$extract_short_name\"))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{namespace}}",
@@ -5218,7 +5127,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 220
+        "y": 212
       },
       "id": 90,
       "maxDataPoints": 100,
@@ -5320,7 +5229,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 228
+        "y": 220
       },
       "id": 91,
       "maxDataPoints": 100,
@@ -5449,7 +5358,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 235
+        "y": 227
       },
       "id": 92,
       "interval": "1m",
@@ -5557,7 +5466,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 235
+        "y": 227
       },
       "id": 93,
       "interval": "1m",
@@ -5665,7 +5574,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 243
+        "y": 235
       },
       "id": 94,
       "interval": "1m",
@@ -5772,7 +5681,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 243
+        "y": 235
       },
       "id": 95,
       "interval": "1m",
@@ -5816,7 +5725,7 @@
     }
   ],
   "preload": false,
-  "refresh": "",
+  "refresh": "10s",
   "schemaVersion": 41,
   "tags": [],
   "templating": {
@@ -5924,12 +5833,12 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Plasma Node Dashboard",
   "uid": "90cccb20-7a61-4005-bb27-4860488553f4",
-  "version": 18
+  "version": 2
 }
