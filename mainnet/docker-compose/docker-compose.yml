@@ -98,8 +98,9 @@ services:
           --http.api eth,net,web3,txpool,debug \
           --http.corsdomain '*' \
           -vvv \
+          --metrics 0.0.0.0:9001 \
           --color never \
-          --rpc.gascap "36000000" \
+          --rpc.gascap "600000000" \
           --txpool.gas-limit "36000000" \
           --txpool.blobpool-max-count "0" \
           --txpool.blobpool-max-size "0" \
@@ -107,6 +108,8 @@ services:
           --log.file.directory /execution/log
     container_name: plasma-execution
     env_file: .env
+    expose:
+      - "9001"  # metrics
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/8545 && exec 6<> /dev/tcp/localhost/8551"]
       interval: 10s
@@ -120,6 +123,8 @@ services:
     depends_on:
       init-execution:
         condition: service_completed_successfully
+    networks:
+      - plasma
 
   plasma-consensus:
     image: ${PLASMA_CONSENSUS_IMAGE}:${PLASMA_CONSENSUS_TAG}
@@ -135,6 +140,8 @@ services:
           -vvv
     ports:
       - "34070:34070"   # p2p
+    expose:
+      - "9001"  # metrics
     container_name: plasma-consensus
     env_file: .env
     volumes:
@@ -149,6 +156,8 @@ services:
         condition: service_completed_successfully
       plasma-execution:
         condition: service_healthy
+    networks:
+      - plasma
 
 volumes:
   consensus-data:
