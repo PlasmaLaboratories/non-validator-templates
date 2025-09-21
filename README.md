@@ -77,14 +77,14 @@ This repository is organized by network (`mainnet`/`testnet`) with multiple depl
 ### Mainnet
 - **Chain ID**: 9745
 - **Consensus Version**: 0.12.4
-- **Execution Client**: Reth v1.6.0
+- **Execution Client**: Reth v1.7.0
 - **Bootstrap Nodes**: 10 consensus + 10 execution nodes
 - **Location**: `mainnet/` directory
 
 ### Testnet
 - **Chain ID**: 9745 (testnet)
 - **Consensus Version**: 0.12.4
-- **Execution Client**: Reth v1.6.0
+- **Execution Client**: Reth v1.7.0
 - **Bootstrap Nodes**: 3 consensus + 3 execution nodes
 - **Location**: `testnet/` directory
 
