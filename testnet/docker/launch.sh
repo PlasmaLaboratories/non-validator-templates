@@ -1,6 +1,6 @@
 PLASMA_CONSENSUS_VERSION="0.12.4"
 RETH_VERSION="v1.7.0"
-NETWORK="mainnet"
+NETWORK="testnet"
 
 log() { printf '%s %s\n' "[$(date +'%F %T')]" "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
