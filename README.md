@@ -12,7 +12,6 @@ This repository contains comprehensive templates and deployment configurations f
   - [Docker Compose (Recommended)](#docker-compose-recommended)
   - [Docker Scripts](#docker-scripts)
 - [Configuration](#configuration)
-- [Network Information](#network-information)
 - [Troubleshooting](#troubleshooting)
 - [Support](#support)
 
