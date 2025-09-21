@@ -1,0 +1,7 @@
+node/consensus
+node/execution
+node/jwt.hex
+node/*.json
+node/*.toml
+node/*.txt
+

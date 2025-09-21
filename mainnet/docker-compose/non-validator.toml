@@ -1,0 +1,113 @@
+engine_api_url = "http://plasma-execution:8551"
+consensus_api_host = "0.0.0.0"
+authrpc_jwtsecret = "/jwt/jwt.hex"
+
+[persistence]
+data_dir = "/consensus"
+
+[network]
+interval = 5
+p2p_port = 34070
+timeout = 5
+identity_file_path = "/consensus/ec-secp256k1-non-validator.der"
+
+[metrics]
+enabled = true
+host = "0.0.0.0"
+port = 9001
+
+[api]
+enabled = true
+host = "0.0.0.0"
+port = 35070
+
+[committee_bls_pub_keys]
+[committee_bls_pub_keys.0]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-0.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-0.hex"
+
+[committee_bls_pub_keys.1]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-1.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-1.hex"
+
+[committee_bls_pub_keys.2]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-2.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-2.hex"
+
+[committee_bls_pub_keys.3]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-3.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-3.hex"
+
+[committee_bls_pub_keys.4]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-4.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-4.hex"
+
+[committee_bls_pub_keys.5]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-5.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-5.hex"
+
+[committee_bls_pub_keys.6]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-6.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-6.hex"
+
+[committee_bls_pub_keys.7]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-7.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-7.hex"
+
+[committee_bls_pub_keys.8]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-8.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-8.hex"
+
+[committee_bls_pub_keys.9]
+validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-9.hex"
+identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-9.hex"
+
+[bootstrap_nodes.0]
+api_host = "plasma-mainnet-observer-cs-0.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmLJFhp9fDY3zyjtyHQGDA1uyX5zCqkKeULZWyYAbrMkox"
+
+[bootstrap_nodes.1]
+api_host = "plasma-mainnet-observer-cs-1.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm4WdZmik6PVsRvcbCzc1eHuNfQHgj52CxUAjmdC7W5dXi"
+
+[bootstrap_nodes.2]
+api_host = "plasma-mainnet-observer-cs-2.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmHmwAP44iw9bw6axzbqzzEyyKU939pXmhXoCRF5HSuyFY"
+
+[bootstrap_nodes.3]
+api_host = "plasma-mainnet-observer-cs-3.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAkufwDKkrdEqM7nph7LuhFaZCc7rkgJ3f5JDyp5hcdPXQC"
+
+[bootstrap_nodes.4]
+api_host = "plasma-mainnet-observer-cs-4.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmGmnMycTkjnMoxcyVAF8cUFpVoVKKCAGTpwEBJMs181yM"
+
+[bootstrap_nodes.5]
+api_host = "plasma-mainnet-observer-cs-5.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm3rbNjuQs8K6doDpo6SHM178AkHM1hxcorCC9Kq7mMM79"
+
+[bootstrap_nodes.6]
+api_host = "plasma-mainnet-observer-cs-6.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmJBxAJuc7mooV6ozqu8Bo3hjek7j2QeNfN6RAMoJNVgri"
+
+[bootstrap_nodes.7]
+api_host = "plasma-mainnet-observer-cs-7.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm5C3iDMrZrVhbLW15XKR2K4crgXZjX8hn9kjPJCfJpiGt"
+
+[bootstrap_nodes.8]
+api_host = "plasma-mainnet-observer-cs-8.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmFc9LkJFL3MB23cUWJPZk91sSniqrRQPbtzoECpsTm87A"
+
+[bootstrap_nodes.9]
+api_host = "plasma-mainnet-observer-cs-9.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm2PVfZRoyXXLASVzVX3gyBEQd3mRAzZytjv3esD9kWumD"
