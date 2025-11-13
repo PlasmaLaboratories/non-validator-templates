@@ -24,4 +24,4 @@ echo $CR_PAT | docker login ghcr.io -u token --password-stdin
 5. Create consensus identity
 6. Start the execution node with the enodes
 7. Start the consensus node via plasma-cli non-validator --config-path <non-validator.toml>
-	1. Make sure to update the `engine_api_url` to your local execution node + update any of the paths for your configuration
+   - Make sure to update the `engine_api_url` to your local execution node and update any of the paths for your configuration
