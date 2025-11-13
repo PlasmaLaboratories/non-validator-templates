@@ -109,6 +109,8 @@ services:
           --log.file.directory /execution/log
     container_name: plasma-execution
     env_file: .env
+    ports:
+      - "30303:30303"
     expose:
       - "9001"  # metrics
     healthcheck:
@@ -136,7 +138,6 @@ services:
         plasma-cli observer \
           --config-path /tmp/non-validator.toml \
           --no-color \
-          --disable-peer-scoring \
           --timeout-stream-manager 10ms \
           -vvv
     ports:

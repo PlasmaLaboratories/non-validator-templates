@@ -1,15 +1,15 @@
 engine_api_url = "http://plasma-execution:8551"
 consensus_api_host = "0.0.0.0"
-authrpc_jwtsecret = "/node/jwt.hex"
+authrpc_jwtsecret = "/jwt/jwt.hex"
 
 [persistence]
-data_dir = "/node/consensus"
+data_dir = "/consensus"
 
 [network]
 interval = 5
 p2p_port = 34070
 timeout = 5
-identity_file_path = "/node/consensus/ec-secp256k1-non-validator.der"
+identity_file_path = "/consensus/ec-secp256k1-non-validator.der"
 
 [metrics]
 enabled = true

@@ -123,6 +123,7 @@ docker run \
   -d \
   --user "$(id -u):$(id -g)" \
   --name plasma-execution \
+  -p 30303:30303 \
   -p 8551:8551 \
   -v ./node:/node \
   ghcr.io/paradigmxyz/reth:"$RETH_VERSION" \
@@ -168,6 +169,5 @@ docker run \
     observer \
     --config-path /node/non-validator.toml \
     --no-color \
-    --disable-peer-scoring \
     --timeout-stream-manager 10ms \
     -vvv
