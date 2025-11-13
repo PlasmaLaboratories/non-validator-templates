@@ -1,5 +1,5 @@
-PLASMA_CONSENSUS_VERSION="0.12.4"
-RETH_VERSION="v1.7.0"
+PLASMA_CONSENSUS_VERSION="0.14.1"
+RETH_VERSION="v1.8.3"
 NETWORK="mainnet"
 
 log() { printf '%s %s\n' "[$(date +'%F %T')]" "$*" >&2; }

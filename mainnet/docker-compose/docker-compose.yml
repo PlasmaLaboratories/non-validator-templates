@@ -101,6 +101,7 @@ services:
           --metrics 0.0.0.0:9001 \
           --color never \
           --rpc.gascap "600000000" \
+          --rpc.txfeecap "0" \
           --txpool.gas-limit "36000000" \
           --txpool.blobpool-max-count "0" \
           --txpool.blobpool-max-size "0" \
@@ -139,7 +140,7 @@ services:
           --timeout-stream-manager 10ms \
           -vvv
     ports:
-      - "34070:34070"   # p2p
+      - "34070:34070"
     expose:
       - "9001"  # metrics
     container_name: plasma-consensus

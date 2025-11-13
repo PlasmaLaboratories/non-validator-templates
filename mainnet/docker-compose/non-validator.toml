@@ -111,3 +111,33 @@ peer_id = "16Uiu2HAmFc9LkJFL3MB23cUWJPZk91sSniqrRQPbtzoECpsTm87A"
 api_host = "plasma-mainnet-observer-cs-9.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAm2PVfZRoyXXLASVzVX3gyBEQd3mRAzZytjv3esD9kWumD"
+
+[bootstrap_nodes.10]
+api_host = "plasma-mainnet-observer-cs-10.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmJYHftU8iRSEAbPq6rPB3TNBh8HoQbKLH3hBU17QMCrZK"
+
+[bootstrap_nodes.11]
+api_host = "plasma-mainnet-observer-cs-11.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm7qGX6TnW8MGw7Ukx5u38cnnnkT1DqcoJww6tjJ3hG5Gf"
+
+[bootstrap_nodes.12]
+api_host = "plasma-mainnet-observer-cs-12.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmLJuGs7hHuSxCVNxZBkdC1LHqGwaqVgKyLWnSxn9GPVze"
+
+[bootstrap_nodes.13]
+api_host = "plasma-mainnet-observer-cs-13.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAkyynWzceTyjugtVSb5N4R5Kgyyemusg3X67fsNHuK4zfb"
+
+[bootstrap_nodes.14]
+api_host = "plasma-mainnet-observer-cs-14.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmHAv2X5FhYU7BpGPgwHwnxs1bKg8NXDFXRi7XYJDr9v3K"
+
+[bootstrap_nodes.15]
+api_host = "plasma-mainnet-observer-cs-15.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmNdXFwCNucGNNsqufEm6EipziZYtGqNpjELec86frduuK"
