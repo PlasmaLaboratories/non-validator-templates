@@ -1,4 +1,4 @@
-# Running the `plasma-consensus` non-validator on the Plasma Testnet
+# Running the `plasma-consensus` non-validator on the Plasma Devnet
 
 ## Using the provided `launch.sh` script
 
