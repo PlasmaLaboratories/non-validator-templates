@@ -1,5 +1,5 @@
-PLASMA_CONSENSUS_VERSION="0.12.4"
-RETH_VERSION="v1.7.0"
+PLASMA_CONSENSUS_VERSION="0.14.1"
+RETH_VERSION="v1.8.3"
 NETWORK="mainnet"
 
 log() { printf '%s %s\n' "[$(date +'%F %T')]" "$*" >&2; }
@@ -123,6 +123,7 @@ docker run \
   -d \
   --user "$(id -u):$(id -g)" \
   --name plasma-execution \
+  -p 30303:30303 \
   -p 8551:8551 \
   -v ./node:/node \
   ghcr.io/paradigmxyz/reth:"$RETH_VERSION" \
@@ -168,6 +169,5 @@ docker run \
     observer \
     --config-path /node/non-validator.toml \
     --no-color \
-    --disable-peer-scoring \
     --timeout-stream-manager 10ms \
     -vvv
