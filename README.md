@@ -201,6 +201,23 @@ port = 35070
 #### 3. Bootstrap Nodes (`enodes.txt`)
 Contains enode URLs for execution client peer discovery. These are automatically loaded by the deployment scripts.
 
+#### 4. Peer Discovery
+For networks that use `plasma-consensus-public:0.15.0` and higher, and are using the Peer Discovery feature, external addresses can be configured if the node is running behind NAT and has a public URL/IP.
+
+Configuring via `config.toml`:
+
+```toml
+[network]
+external_address = "[127.0.0.1:34070](node.example.com:34070)"
+```
+
+Configuring via CLI:
+```
+--p2p.external-address node.example.com:34070
+```
+
+The port will default to p2p if it is not provided
+
 ### Shared Resources
 
 Both networks reference shared validator keys and identities:

@@ -10,130 +10,131 @@ interval = 5
 p2p_port = 34070
 timeout = 5
 identity_file_path = "/node/consensus/ec-secp256k1-non-validator.der"
+trusted_only = false
+discovery.enabled = true
 
 [api]
 enabled = true
 host = "127.0.0.1"
 port = 35070
 
-[committee_bls_pub_keys]
-[committee_bls_pub_keys.0]
+[validators]
+[validators.0]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-0.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-0.hex"
 
-[committee_bls_pub_keys.1]
+[validators.1]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-1.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-1.hex"
 
-[committee_bls_pub_keys.2]
+[validators.2]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-2.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-2.hex"
 
-[committee_bls_pub_keys.3]
+[validators.3]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-3.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-3.hex"
 
-[committee_bls_pub_keys.4]
+[validators.4]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-4.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-4.hex"
 
-[committee_bls_pub_keys.5]
+[validators.5]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-5.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-5.hex"
 
-[committee_bls_pub_keys.6]
+[validators.6]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-6.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-6.hex"
 
-[committee_bls_pub_keys.7]
+[validators.7]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-7.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-7.hex"
 
-[committee_bls_pub_keys.8]
+[validators.8]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-8.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-8.hex"
 
-[committee_bls_pub_keys.9]
+[validators.9]
 validator_keystore_pk_file_path = "/node/keys/bls12-381-public-key-9.hex"
 identity_file_path = "/node/identities/ec-secp256k1-validator-public-compressed-9.hex"
 
-[bootstrap_nodes.0]
+[network.bootstrap_nodes.0]
 api_host = "plasma-testnet-observer-cs-0.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAm6MP8mzeveHCEvKabcvFZuHSVVN6q5mLYeFow53sB9mBc"
 
-[bootstrap_nodes.1]
+[network.bootstrap_nodes.1]
 api_host = "plasma-testnet-observer-cs-1.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAm2LipxgPhTzL63vGBa4vvq8hjBTvHLL5JpQJEnnndoB8b"
 
-[bootstrap_nodes.2]
+[network.bootstrap_nodes.2]
 api_host = "plasma-testnet-observer-cs-2.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmQei2ekvcimo3sPpfnHMW52NUMJsD9os3Ek38iDxtpEmT"
 
-[bootstrap_nodes.3]
+[network.bootstrap_nodes.3]
 api_host = "plasma-testnet-observer-cs-3.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmDEnYJBznkd65Bi62yYSZibobfsB5dEMrshEsLBcgnGHq"
 
-[bootstrap_nodes.4]
+[network.bootstrap_nodes.4]
 api_host = "plasma-testnet-observer-cs-4.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAm3gGfJyWKSEzi67nL9CYc1umG5DdGp7TFHZSaWvd5N2AK"
 
-[bootstrap_nodes.5]
+[network.bootstrap_nodes.5]
 api_host = "plasma-testnet-observer-cs-5.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmEAQzGTcPPtafaaSRTSx6zL4vRix9BXHXgZcaowWBZqe6"
 
-[bootstrap_nodes.6]
+[network.bootstrap_nodes.6]
 api_host = "plasma-testnet-observer-cs-6.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAm5AYtmPwPUx7eZpXGdpZf9pNJH6VW2QBJomJJiQysRJsQ"
 
-[bootstrap_nodes.7]
+[network.bootstrap_nodes.7]
 api_host = "plasma-testnet-observer-cs-7.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAkz9vvVqUUrmx9CdtvWhf2eQkbwgX2xfPBqfMHj4Zrt7TY"
 
-[bootstrap_nodes.8]
+[network.bootstrap_nodes.8]
 api_host = "plasma-testnet-observer-cs-8.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmQHaiTQo89c9QR7YGETNceu2W155Czv9zaULT3fBHCoqf"
 
-[bootstrap_nodes.9]
+[network.bootstrap_nodes.9]
 api_host = "plasma-testnet-observer-cs-9.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmLzq4LCDQ8FNSPs5ESsWAiSUfDQjXjtbrx3fG9M9qZrU6"
 
-[bootstrap_nodes.10]
+[network.bootstrap_nodes.10]
 api_host = "plasma-testnet-observer-cs-10.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAkxpx6XrcqihcbkEjTouNFDXHejg5gF1RRwCUpTZyYVzAd"
 
-[bootstrap_nodes.11]
+[network.bootstrap_nodes.11]
 api_host = "plasma-testnet-observer-cs-11.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmFc1L8PixHQjHn3R4eA9ZNcTs7nq3xTzJndzD34LHErrx"
 
-[bootstrap_nodes.12]
+[network.bootstrap_nodes.12]
 api_host = "plasma-testnet-observer-cs-12.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmDNDKR7yyXT7gx3ivkQz6KshVvuYhUrF47Q8pMVCzLdCT"
 
-[bootstrap_nodes.13]
+[network.bootstrap_nodes.13]
 api_host = "plasma-testnet-observer-cs-13.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmMcFtt4K4SrTG6VcjDDMsf8pdcvySbAWCFT1tk7q6YUAD"
 
-[bootstrap_nodes.14]
+[network.bootstrap_nodes.14]
 api_host = "plasma-testnet-observer-cs-14.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAmPmFY4kqhawFr6ycTfdcne792rsfXa9EsejbDuLov9G1m"
 
-[bootstrap_nodes.15]
+[network.bootstrap_nodes.15]
 api_host = "plasma-testnet-observer-cs-15.plasmalabs.tech"
 p2p_port = 34070
 peer_id = "16Uiu2HAkzK1g5jnkWg5C3f4mTnta6bXwYHBQqhNMbNspiYory64G"
-

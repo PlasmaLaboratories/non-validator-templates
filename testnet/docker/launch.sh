@@ -1,4 +1,4 @@
-PLASMA_CONSENSUS_VERSION="0.14.1"
+PLASMA_CONSENSUS_VERSION="0.15.0"
 RETH_VERSION="v1.8.3"
 NETWORK="testnet"
 
@@ -100,7 +100,7 @@ if [[ ! -d ./node/consensus/data.mdbx ]]; then
     --platform linux/amd64 \
     --user "$(id -u):$(id -g)" \
     -v ./node:/node \
-    ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
+    ghcr.io/plasmalaboratories/plasma-consensus-public:"$PLASMA_CONSENSUS_VERSION" \
       plasma-cli \
       init \
       --chain /node/$NETWORK.json \
@@ -113,7 +113,7 @@ docker run \
   --platform linux/amd64 \
   --user "$(id -u):$(id -g)" \
   -v ./node:/node \
-  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
+  ghcr.io/plasmalaboratories/plasma-consensus-public:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli peer-id \
     --identity-file-path /node/consensus/ec-secp256k1-non-validator.der > ./node/peer-id.txt
 
@@ -159,12 +159,11 @@ docker run \
   --name plasma-consensus \
   -p 34070:34070 \
   -p 35070:35070 \
-  -p 9001:9001 \
   -v ./node:/node \
   -v ../shared/keys:/node/keys \
   -v ../shared/identities:/node/identities \
   -v ./non-validator.toml:/node/non-validator.toml \
-  ghcr.io/plasmalaboratories/plasma-consensus:"$PLASMA_CONSENSUS_VERSION" \
+  ghcr.io/plasmalaboratories/plasma-consensus-public:"$PLASMA_CONSENSUS_VERSION" \
     plasma-cli \
     observer \
     --config-path /node/non-validator.toml \
