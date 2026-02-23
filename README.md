@@ -208,7 +208,7 @@ Configuring via `config.toml`:
 
 ```toml
 [network]
-external_address = "[127.0.0.1:34070](node.example.com:34070)"
+external_address = "node.example.com:34070"
 ```
 
 Configuring via CLI:
