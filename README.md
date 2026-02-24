@@ -8,7 +8,7 @@ Templates and deployment configurations for running Plasma non-validator (observ
 |---------|----------|-----------------|-------------------|-------------------|-----------------|--------------------|
 | mainnet | 9745 | `plasma-consensus` | 0.14.1 | Reth v1.8.3 | 16 consensus + 16 execution | Yes |
 | testnet | 9746 | `plasma-consensus-public` | 0.15.0 | Reth v1.8.3 | 16 consensus + 16 execution | No |
-| devnet | 9747 | `plasma-consensus` | 0.14.1 | Reth v1.8.3 | 3 consensus + 3 execution | Yes |
+| devnet | 9747 | `plasma-consensus-public` | 0.15.0 | Reth v1.8.3 | 3 consensus + 3 execution | No |
 
 ## Quick Start
 
@@ -51,7 +51,7 @@ docker compose logs -f plasma-consensus
 
 ## Configuration
 
-All version numbers and image tags are defined in each network's `.env` file — that is the single source of truth. See `{network}/.env` for current values.
+All version numbers and image tags are defined in each network's `.env` file — that is the single source of truth. See `{network}/docker-compose/.env` for current values.
 
 ### Consensus Configuration (`non-validator.toml`)
 
@@ -112,10 +112,9 @@ docker compose down -v && docker compose up -d    # Clean restart
 ### Container Startup Failures
 ```bash
 docker compose logs <service-name>
-docker pull ghcr.io/plasmalaboratories/plasma-consensus:<tag>
 ```
 
-### Authentication Errors
+### Authentication Errors (mainnet only)
 ```bash
 export CR_PAT=<your-token>
 echo $CR_PAT | docker login ghcr.io -u token --password-stdin
@@ -127,7 +126,6 @@ echo $CR_PAT | docker login ghcr.io -u token --password-stdin
 curl -s -X POST -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' \
   http://localhost:8545
-
 ```
 
 ## Monitoring
