@@ -17,7 +17,7 @@ Templates and deployment configurations for running Plasma non-validator (observ
 git clone https://github.com/PlasmaLaboratories/non-validator-templates.git
 cd non-validator-templates
 
-# Authenticate with GHCR (not required for testnet)
+# Authenticate with GHCR (not required for `plasma-consensus-public`)
 export CR_PAT=<your-github-pat>
 echo $CR_PAT | docker login ghcr.io -u token --password-stdin
 
@@ -128,19 +128,6 @@ curl -s -X POST -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' \
   http://localhost:8545
 
-# Check consensus peer connections
-docker compose logs plasma-consensus | grep -i "peer\|sync"
-```
-
-### Port Conflicts
-```bash
-netstat -tulpn | grep -E ':(8545|8551|34070|35070)'
-```
-
-### Disk Space
-```bash
-docker system df
-docker system prune -a --volumes
 ```
 
 ## Monitoring
