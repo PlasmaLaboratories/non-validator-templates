@@ -142,4 +142,103 @@ Monitor your node's health:
 - Monitor CPU usage during initial sync
 - Consider increasing ulimits for production deployments
 
+## Testnet Database Snapshots
+
+Plasma publishes daily database snapshots for the testnet network. Both the consensus layer and execution layer databases are exported once per day and uploaded to a public S3 bucket. The bucket uses AWS's requester-pays model — you need an AWS account, and standard S3 data transfer rates apply to your account on download.
+
+Snapshots allow operators to bootstrap a new node in hours rather than syncing from genesis, which can take days to weeks.
+
+### Prerequisites
+
+- An AWS account with credentials configured (`aws configure` or environment variables)
+- The AWS CLI installed (`aws --version`)
+- Sufficient disk space — plan for at least `400 GB` free
+
+> **Cost note:** You pay standard AWS S3 data transfer rates. As of writing, data transfer out to the internet from `us-east-2` is `$0.09/GB` for the first `10 TB/month`. Transferring from an EC2 instance in the same region is free. Running your node in `us-east-2` is the most cost-effective option.
+
+### Bucket Details
+
+| Property | Value |
+|----------|-------|
+| Bucket | `plasma-testnet-db-backups` |
+| Region | `us-east-2` (Ohio) |
+| Access model | Requester-pays (any authenticated AWS principal) |
+| Backup cadence | Daily at 02:00 UTC |
+| Retention | 3 days (older backups are automatically removed) |
+| Transport | TLS required — the bucket rejects plaintext HTTP |
+
+### What's in the Bucket
+
+Backups are organized into date-based folders using `MM-DD-YY` format. Each folder contains two files:
+
+```
+plasma-testnet-db-backups/
+├── 02-23-26/
+│   ├── consensus-backup-20260223-020001.mdb      (~200+ GB)
+│   └── execution-backup-20260223-020001.tar.gz   (~100+ GB)
+├── 02-24-26/
+│   ├── consensus-backup-20260224-020001.mdb
+│   └── execution-backup-20260224-020001.tar.gz
+└── ...
+```
+
+- **Consensus database** (`.mdb`) — Exported via `plasma-cli copy-db`. This is the consensus layer's full database.
+- **Execution database** (`.tar.gz`) — A tar archive of the reth execution `data/` directory.
+
+### Downloading Snapshots
+
+List available backups:
+
+```bash
+aws s3 ls s3://plasma-testnet-db-backups/ \
+  --region us-east-2 \
+  --request-payer requester
+```
+
+List files in a specific backup:
+
+```bash
+aws s3 ls s3://plasma-testnet-db-backups/02-24-26/ \
+  --region us-east-2 \
+  --request-payer requester
+```
+
+Download an entire day's backup at once:
+
+```bash
+# Pick the most recent date folder
+DATE="02-24-26"
+
+aws s3 cp \
+  "s3://plasma-testnet-db-backups/${DATE}/" \
+  ./backups/ \
+  --recursive \
+  --region us-east-2 \
+  --request-payer requester
+```
+
+### Restoring from Snapshot
+
+**Consensus layer** — Copy the `.mdb` file to your node's consensus data directory:
+
+```bash
+cp consensus-backup.mdb /path/to/plasma-data-dir/
+```
+
+**Execution layer** — Extract the tar archive into your node's execution data directory:
+
+```bash
+tar -xzf execution-backup.tar.gz -C /path/to/execution-data-dir/
+```
+
+This restores the `data/` subdirectory containing the full reth execution state.
+
+### Snapshot Troubleshooting
+
+| Issue | Cause / Fix |
+|-------|-------------|
+| `Access Denied` | You must include `--request-payer requester` on every request. Without it, the bucket rejects the call. |
+| `403 Forbidden` | Your AWS credentials may not be configured. Run `aws sts get-caller-identity` to verify you have a valid session. |
+| Empty bucket listing | Backups older than 3 days are automatically cleaned up. If the bucket appears empty, a backup cycle may be in progress. Check back after 02:00 UTC. |
+
 ---
