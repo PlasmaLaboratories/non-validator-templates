@@ -151,7 +151,7 @@ Each snapshot contains two files — the consensus-layer database and the execut
 |-------------|---------|
 | AWS account | Credentials configured via `aws configure` or environment variables |
 | AWS CLI | v2 recommended (`aws --version`) |
-| Disk space | **Mainnet:** ~400 GB free &nbsp;&bull;&nbsp; **Testnet:** ~400 GB free |
+| Disk space | **Mainnet:** ~400 GB free &nbsp;&bull;&nbsp; **Testnet:** ~100 GB free |
 
 > **Cost note:** Data transfer out from `us-east-2` is ~$0.09/GB for the first 10 TB/month. Transferring from an EC2 instance **in the same region** is free — running your node in `us-east-2` is the most cost-effective option.
 
@@ -186,8 +186,8 @@ plasma-mainnet-db-backups/
 ```
 plasma-testnet-db-backups/
 ├── 02-23-26/
-│   ├── consensus-backup-20260223-020001.mdb       (~200+ GB)
-│   └── execution-backup-20260223-020001.tar.gz    (~100+ GB)
+│   ├── consensus-backup-20260223-020001.mdb       (~56 GB)
+│   └── execution-backup-20260223-020001.tar.gz    (~9 GB)
 ├── 02-24-26/
 │   ├── consensus-backup-20260224-020001.mdb
 │   └── execution-backup-20260224-020001.tar.gz
