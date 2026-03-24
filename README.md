@@ -6,7 +6,7 @@ Templates and deployment configurations for running Plasma non-validator (observ
 
 | Network | Chain ID | Consensus Image | Consensus Version | Execution Version | Bootstrap Nodes | GHCR Auth Required |
 |---------|----------|-----------------|-------------------|-------------------|-----------------|--------------------|
-| mainnet | 9745 | `plasma-consensus` | 0.14.1 | Reth v1.8.3 | 16 consensus + 16 execution | Yes |
+| mainnet | 9745 | `plasma-consensus-public` | 0.15.0 | Reth v1.8.3 | 16 consensus + 16 execution | No |
 | testnet | 9746 | `plasma-consensus-public` | 0.15.0 | Reth v1.8.3 | 16 consensus + 16 execution | No |
 | devnet | 9747 | `plasma-consensus-public` | 0.15.0 | Reth v1.8.3 | 3 consensus + 3 execution | No |
 
@@ -17,9 +17,7 @@ Templates and deployment configurations for running Plasma non-validator (observ
 git clone https://github.com/PlasmaLaboratories/non-validator-templates.git
 cd non-validator-templates
 
-# Authenticate with GHCR (not required for `plasma-consensus-public`)
-export CR_PAT=<your-github-pat>
-echo $CR_PAT | docker login ghcr.io -u token --password-stdin
+# No GHCR login is required; `plasma-consensus-public` is publicly accessible
 
 # Start a node (replace {network} with mainnet, testnet, or devnet)
 cd {network}/docker-compose
@@ -61,15 +59,14 @@ Each network's `non-validator.toml` configures the consensus client. Key section
 |---------|--------|-------------|
 | *(top-level)* | `engine_api_url`, `consensus_api_host`, `authrpc_jwtsecret` | Execution engine connection |
 | `[persistence]` | `data_dir` | Consensus data storage path |
-| `[network]` | `p2p_port`, `interval`, `timeout`, `identity_file_path` | P2P networking |
-| `[metrics]` | `enabled`, `host`, `port` | Prometheus metrics endpoint |
+| `[network]` | `p2p_port`, `interval`, `timeout`, `identity_file_path`, `trusted_only`, `discovery.enabled` | P2P networking and peer discovery |
 | `[api]` | `enabled`, `host`, `port` | Consensus API endpoint |
-| `[committee_bls_pub_keys.*]` | `validator_keystore_pk_file_path`, `identity_file_path` | Validator committee |
-| `[bootstrap_nodes.*]` | `api_host`, `p2p_port`, `peer_id` | Consensus peer discovery |
+| `[validators.*]` | `validator_keystore_pk_file_path`, `identity_file_path` | Validator committee |
+| `[network.bootstrap_nodes.*]` | `api_host`, `p2p_port`, `peer_id` | Consensus bootstrap peers |
 
 ### Peer Discovery
 
-For networks using `plasma-consensus-public:0.15.0` and higher, external addresses can be configured for nodes behind NAT:
+The checked-in templates use `plasma-consensus-public:0.15.0` with peer discovery enabled. External addresses can be configured for nodes behind NAT:
 
 ```toml
 [network]
@@ -114,10 +111,10 @@ docker compose down -v && docker compose up -d    # Clean restart
 docker compose logs <service-name>
 ```
 
-### Authentication Errors (mainnet only)
+### Image Pull Issues
 ```bash
-export CR_PAT=<your-token>
-echo $CR_PAT | docker login ghcr.io -u token --password-stdin
+# GHCR authentication is not required for `plasma-consensus-public`
+docker pull ghcr.io/plasmalaboratories/plasma-consensus-public:0.15.0
 ```
 
 ### Sync Issues
