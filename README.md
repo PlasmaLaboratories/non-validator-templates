@@ -203,21 +203,43 @@ plasma-testnet-db-backups/
 
 Replace `BUCKET` with the appropriate bucket name from the table above.
 
+**List available snapshots:**
+
 ```bash
-# Set your target network's bucket
 BUCKET="plasma-mainnet-db-backups"   # or "plasma-testnet-db-backups"
 
-# List available snapshots
 aws s3 ls "s3://${BUCKET}/" \
   --region us-east-2 \
   --request-payer requester
+```
 
-# List files in a specific snapshot
+Expected output:
+
+```
+                           PRE 03-20-26/
+                           PRE 03-21-26/
+                           PRE 03-22-26/
+                           PRE 03-23-26/
+```
+
+**List files in the most recent snapshot:**
+
+```bash
 aws s3 ls "s3://${BUCKET}/03-23-26/" \
   --region us-east-2 \
   --request-payer requester
+```
 
-# Download the most recent snapshot
+Expected output (mainnet):
+
+```
+2026-03-23 19:18:21 234524839936 consensus-backup-20260323-020001.db
+2026-03-23 19:18:21 109202099000 execution-backup-20260323-020001.tar.gz
+```
+
+**Download the snapshot:**
+
+```bash
 DATE="03-23-26"   # replace with the latest date folder
 
 aws s3 cp \
@@ -227,6 +249,17 @@ aws s3 cp \
   --region us-east-2 \
   --request-payer requester
 ```
+
+> **If you see `Access Denied`:** You forgot `--request-payer requester`. Every command requires it.
+
+**Download time estimates (mainnet, ~320 GB total):**
+
+| Location | Throughput | Estimated time |
+|----------|-----------|----------------|
+| EC2 in `us-east-2` (same region) | 100+ MB/s | Under 1 hour |
+| Internet (residential/office) | 4–16 MB/s | 5–10 hours |
+
+> **Tip:** If you use AWS SSO credentials, the session token may expire before the download finishes. Use long-lived IAM credentials (`aws configure`) or run from an EC2 instance with an IAM role to avoid mid-download auth failures. Running in `us-east-2` also gives zero data-transfer cost.
 
 ### Step 2 — Restore
 
