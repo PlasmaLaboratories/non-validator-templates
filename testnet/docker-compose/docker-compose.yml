@@ -109,7 +109,9 @@ services:
     container_name: plasma-execution
     env_file: .env
     ports:
-      - "30303:30303"   # p2p
+      - "30303:30303"         # p2p
+      - "30303:30303/udp"     # p2p-udp
+      - "127.0.0.1:8545:8545" # RPC only localhost (remove 127.0.0.1 to expose)
     expose:
       - "9001"  # metrics
     healthcheck:
