@@ -109,7 +109,9 @@ services:
     container_name: plasma-execution
     env_file: .env
     ports:
-      - "30303:30303"   # p2p
+      - "30303:30303"       # p2p
+      - "30303:30303/udp"   # p2p-udp
+      - "8545:8545"
     expose:
       - "9001"  # metrics
     healthcheck:
