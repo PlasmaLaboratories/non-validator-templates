@@ -160,69 +160,71 @@ Each snapshot contains two files — the consensus-layer database and the execut
 | Property | Mainnet | Testnet |
 |----------|---------|---------|
 | **Bucket** | `plasma-mainnet-db-backups` | `plasma-testnet-db-backups` |
+| **Prefix format** | `mainnet/<snapshot-source>/<date>/` | `testnet/<snapshot-source>/<date>/` |
+| **Current source** | `observer-0` | `observer-0` |
 | **Region** | `us-east-2` (Ohio) | `us-east-2` (Ohio) |
 | **Access model** | Requester-pays | Requester-pays |
 | **Backup cadence** | Daily | Daily at 02:00 UTC |
-| **Retention** | Rolling (older backups removed automatically) | 3 days |
 | **Transport** | TLS required | TLS required |
 
 ### Bucket Contents
 
-Backups are organized into date-stamped folders (`MM-DD-YY`). Each folder contains two files:
+Backups are organized by network, snapshot source, and date (`MM-DD-YY`):
 
-**Mainnet** — consensus database uses `.db` extension:
 ```
 plasma-mainnet-db-backups/
-├── 03-22-26/
-│   ├── consensus-backup-20260322-020001.db        (~218 GB)
-│   └── execution-backup-20260322-020001.tar.gz    (~102 GB)
-├── 03-23-26/
-│   ├── consensus-backup-20260323-020001.db
-│   └── execution-backup-20260323-020001.tar.gz
-└── ...
-```
-
-**Testnet** — consensus database uses `.mdb` extension:
-```
-plasma-testnet-db-backups/
-├── 02-23-26/
-│   ├── consensus-backup-20260223-020001.mdb       (~56 GB)
-│   └── execution-backup-20260223-020001.tar.gz    (~9 GB)
-├── 02-24-26/
-│   ├── consensus-backup-20260224-020001.mdb
-│   └── execution-backup-20260224-020001.tar.gz
-└── ...
+└── mainnet/
+    └── observer-0/
+        └── 06-06-26/
+            ├── consensus-backup-20260606-020000.tar.gz
+            └── execution-backup-20260606-020000.tar.gz
 ```
 
 | File | Description |
 |------|-------------|
-| **Consensus database** (`.db` or `.mdb`) | Full consensus-layer state, exported via `plasma-cli copy-db` |
+| **Consensus database** | Consensus-layer database snapshot |
 | **Execution database** (`.tar.gz`) | Tar archive of the reth execution `data/` directory |
 
 ### Step 1 — Download
 
-Replace `BUCKET` with the appropriate bucket name from the table above.
+Use the helper script for large, restartable requester-pays downloads. It writes to `./backups/<network>` by default.
 
 ```bash
-# Set your target network's bucket
-BUCKET="plasma-mainnet-db-backups"   # or "plasma-testnet-db-backups"
+NETWORK="mainnet"              # mainnet or testnet
+SNAPSHOT_SOURCE="observer-0"   # upstream snapshot producer
 
-# List available snapshots
-aws s3 ls "s3://${BUCKET}/" \
-  --region us-east-2 \
-  --request-payer requester
+scripts/download-snapshot.sh \
+  --env "$NETWORK" \
+  --prefix "$NETWORK/$SNAPSHOT_SOURCE/" \
+  --latest
+```
 
-# List files in a specific snapshot
-aws s3 ls "s3://${BUCKET}/03-23-26/" \
-  --region us-east-2 \
-  --request-payer requester
+With an AWS profile:
 
-# Download the most recent snapshot
-DATE="03-23-26"   # replace with the latest date folder
+```bash
+scripts/download-snapshot.sh \
+  --env "$NETWORK" \
+  --prefix "$NETWORK/$SNAPSHOT_SOURCE/" \
+  --latest \
+  --profile plasma-snapshots
+```
+
+List or select a specific date:
+
+```bash
+scripts/download-snapshot.sh --env "$NETWORK" --prefix "$NETWORK/$SNAPSHOT_SOURCE/" --list
+scripts/download-snapshot.sh --env "$NETWORK" --prefix "$NETWORK/$SNAPSHOT_SOURCE/" --folder 06-06-26
+```
+
+Manual AWS CLI fallback:
+
+```bash
+BUCKET="plasma-$NETWORK-db-backups"
+DATE="06-06-26"
 
 aws s3 cp \
-  "s3://${BUCKET}/${DATE}/" \
-  ./backups/ \
+  "s3://${BUCKET}/${NETWORK}/${SNAPSHOT_SOURCE}/${DATE}/" \
+  "./backups/${NETWORK}/" \
   --recursive \
   --region us-east-2 \
   --request-payer requester
@@ -230,35 +232,50 @@ aws s3 cp \
 
 ### Step 2 — Restore
 
-Stop your node before restoring:
+Stop your node first. The default compose project volumes are `docker-compose_consensus-data` and `docker-compose_execution-data`.
 
 ```bash
-cd {network}/docker-compose
+NETWORK="mainnet"
+cd "$NETWORK/docker-compose"
 docker compose down
+BACKUP_DIR="$(cd "../../backups/$NETWORK" && pwd)"
 ```
 
-**Consensus layer** — copy the snapshot into the consensus data directory:
+Restore consensus as `/consensus/data.mdb`, preserving the node identity files:
 
 ```bash
-# Mainnet (.db)
-cp backups/consensus-backup-*.db /path/to/plasma-data-dir/
-
-# Testnet (.mdb)
-cp backups/consensus-backup-*.mdb /path/to/plasma-data-dir/
+docker run --rm --user 0:0 --entrypoint /bin/bash \
+  -v docker-compose_consensus-data:/consensus \
+  -v "$BACKUP_DIR:/backups:ro" \
+  ghcr.io/plasmalaboratories/plasma-consensus-public:0.15.0 \
+  -lc 'set -euo pipefail
+rm -f /consensus/data.mdb /consensus/lock.mdb
+tar -xzf /backups/consensus-backup-*.tar.gz -C /consensus \
+  --numeric-owner --same-owner --same-permissions \
+  --transform "s,^consensus-backup.*$,data.mdb,"'
 ```
 
-**Execution layer** — extract the archive into the execution data directory:
+Restore execution, preserving the local Reth discovery secret if the snapshot does not include one:
 
 ```bash
-tar -xzf backups/execution-backup-*.tar.gz -C /path/to/execution-data-dir/
+docker run --rm --user 0:0 --entrypoint /bin/bash \
+  -v docker-compose_execution-data:/execution \
+  -v "$BACKUP_DIR:/backups:ro" \
+  ghcr.io/paradigmxyz/reth:v1.8.3 \
+  -lc 'set -euo pipefail
+tmp=/tmp/discovery-secret
+[ -f /execution/discovery-secret ] && cp -p /execution/discovery-secret "$tmp"
+find /execution -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+tar -xzf /backups/execution-backup-*.tar.gz -C /execution \
+  --strip-components=1 --numeric-owner --same-owner --same-permissions
+[ -f "$tmp" ] && [ ! -f /execution/discovery-secret ] && cp -p "$tmp" /execution/discovery-secret'
 ```
 
-This restores the `data/` subdirectory containing the full reth execution state.
-
-Then restart your node:
+Restart and check status:
 
 ```bash
 docker compose up -d
+docker compose ps
 ```
 
 ### Snapshot Troubleshooting
@@ -268,6 +285,6 @@ docker compose up -d
 | `Access Denied` | You must include `--request-payer requester` on every command. The bucket rejects requests without it. |
 | `403 Forbidden` | AWS credentials not configured. Run `aws sts get-caller-identity` to verify you have a valid session. |
 | Empty bucket listing | Older backups are automatically cleaned up. If the bucket appears empty, a backup cycle may be in progress — check back later. |
-| Wrong file extension | Mainnet uses `.db`; testnet uses `.mdb`. Ensure you copy the correct file for your network. |
+| Wrong prefix | Use `<network>/<snapshot-source>/<date>/`, for example `mainnet/observer-0/06-06-26/`. |
 
 ---
