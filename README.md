@@ -287,23 +287,28 @@ Each snapshot contains two files, the consensus-layer database and the execution
 They are uploaded to a _requester-pays_ S3 bucket. You need an AWS account, standard S3
 data-transfer rates apply.
 
-Backups are organized by network, snapshot source, and date (`MM-DD-YY`):
+Each network has its own bucket. Inside it, backups are organized by snapshot source and,
+optionally, database schema version. Both files of a snapshot share the same
+`YYYYMMDD-HHMMSS` timestamp in their name, which is what identifies a snapshot:
 
 ```
 plasma-mainnet-db-backups/
-└── mainnet/
-    └── observer-0/
-        └── 06-06-26/
-            ├── consensus-backup-20260606-020000.tar.gz
-            └── execution-backup-20260606-020000.tar.gz
+└── observer-0/
+    └── v2/
+        ├── consensus-backup-20260606-020000.tar.gz
+        └── execution-backup-20260606-020000.tar.gz
 ```
 
 For example:
 
 ```
-s3://plasma-mainnet-db-backups/mainnet/observer-0/06-06-26/consensus-backup-20260606-020000.tar.gz
-s3://plasma-mainnet-db-backups/mainnet/observer-0/06-06-26/execution-backup-20260606-020000.tar.gz
+s3://plasma-mainnet-db-backups/observer-0/v2/consensus-backup-20260606-020000.tar.gz
+s3://plasma-mainnet-db-backups/observer-0/v2/execution-backup-20260606-020000.tar.gz
 ```
+
+Object names sort chronologically, so the newest snapshot is always the last one in a listing.
+Older snapshots may still sit under the previous `<network>/<source>/<MM-DD-YY>/` layout; the
+helper script discovers snapshots by object name, so it finds both.
 
 ### Prerequisites
 
@@ -336,12 +341,16 @@ With an AWS profile:
 scripts/download-snapshot.sh --env "$NETWORK" --latest --profile plasma-snapshots
 ```
 
-List or select a specific date:
+List the available snapshots or select one by timestamp (full `YYYYMMDD-HHMMSS`, or just the
+date as `YYYYMMDD` / `YYYY-MM-DD`):
 
 ```bash
 scripts/download-snapshot.sh --env "$NETWORK" --list
-scripts/download-snapshot.sh --env "$NETWORK" --folder 06-06-26
+scripts/download-snapshot.sh --env "$NETWORK" --snapshot 20260606-020000
 ```
+
+When several snapshot sources publish to the same bucket, narrow the search with `--prefix`, for
+example `--prefix observer-0/`.
 
 For faster download speeds, use [s5cmd](https://github.com/peak/s5cmd)
 
@@ -354,13 +363,15 @@ Manual AWS CLI fallback:
 ```bash
 NETWORK="mainnet"
 BUCKET="plasma-$NETWORK-db-backups"
-SNAPSHOT_SOURCE="observer-0"
-DATE="06-06-26"
+SNAPSHOT_PREFIX="observer-0/v2/"
+SNAPSHOT="20260606-020000"
 
 aws s3 cp \
-  "s3://${BUCKET}/${NETWORK}/${SNAPSHOT_SOURCE}/${DATE}/" \
+  "s3://${BUCKET}/${SNAPSHOT_PREFIX}" \
   "./config/${NETWORK}/snapshots/" \
   --recursive \
+  --exclude "*" \
+  --include "*-backup-${SNAPSHOT}.tar.gz" \
   --region us-east-2 \
   --request-payer requester
 ```
@@ -452,7 +463,9 @@ progress, check back later.
 
 #### Wrong prefix
 
-Use `<network>/<snapshot-source>/<date>/`, for example `mainnet/observer-0/06-06-26/`
+`--prefix` is matched against the start of the object key. Use `<snapshot-source>/` or
+`<snapshot-source>/<version>/`, for example `observer-0/` or `observer-0/v2/`. Run
+`scripts/download-snapshot.sh --env <network> --list` to see the prefixes that actually exist.
 
 ## Upgrading
 

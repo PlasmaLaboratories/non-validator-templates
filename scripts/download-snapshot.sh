@@ -11,21 +11,30 @@ Usage:
 Downloads Plasma database snapshots from requester-pays S3 buckets using
 restartable byte-range chunks.
 
+A snapshot is the set of <component>-backup-<YYYYMMDD-HHMMSS>.tar.gz objects
+that share one timestamp under one S3 prefix, e.g.
+  s3://plasma-mainnet-db-backups/observer-0/consensus-backup-20260606-020000.tar.gz
+  s3://plasma-mainnet-db-backups/observer-0/execution-backup-20260606-020000.tar.gz
+Snapshots are discovered from the object names, so the legacy layout with a
+<network>/<source>/<MM-DD-YY>/ folder is found as well.
+
 Options:
   --env ENV             Network environment: mainnet, testnet, or devnet.
   --bucket BUCKET       Override the environment's default S3 bucket.
   --profile PROFILE     AWS CLI profile to use. Defaults to AWS_PROFILE/default resolution.
   --region REGION       AWS region. Defaults to AWS_REGION, AWS_DEFAULT_REGION, or us-east-2.
-  --prefix PREFIX       Limit discovery to a bucket prefix, e.g. mainnet/observer-0/.
-  --folder FOLDER       Snapshot folder/date or full prefix, e.g. 06-06-26 or mainnet/observer-0/06-06-26.
-  --latest              Select the newest discovered snapshot folder without prompting.
+  --prefix PREFIX       Limit discovery to a bucket prefix, e.g. observer-0/ or observer-0/v2/.
+  --snapshot STAMP      Select a snapshot by timestamp: 20260606-020000, 20260606 or 2026-06-06.
+  --folder FOLDER       Select by S3 folder: a full prefix such as observer-0/v2, or a legacy
+                        MM-DD-YY date folder such as 06-06-26.
+  --latest              Select the newest discovered snapshot without prompting.
   --dest DIR            Destination directory. Defaults to ./config/ENV/snapshots.
   --chunk-size SIZE     Chunk size for ranged downloads. Defaults to 5GiB. Examples: 1G, 512M.
   --dry-run             Show what would be downloaded without downloading.
   --keep-parts          Keep part files after assembling final files.
   --no-gzip-test        Skip gzip validation for files ending in .gz.
   --use-s5cmd           Download with s5cmd, which is faster than aws s3 cli. Requires s5cmd on PATH.
-  --list                List discovered snapshot folders and exit.
+  --list                List discovered snapshots (timestamp and S3 prefix) and exit.
   -h, --help            Show this help.
 
 Environment bucket defaults:
@@ -34,11 +43,12 @@ Environment bucket defaults:
   devnet:  PLASMA_DEVNET_BACKUPS_BUCKET or plasma-devnet-db-backups
 
 Examples:
-  scripts/download-snapshot.sh --env mainnet --prefix mainnet/observer-0/ --latest
-  scripts/download-snapshot.sh --env mainnet --prefix mainnet/observer-0/ --latest --profile plasma-snapshots
-  scripts/download-snapshot.sh --env mainnet --folder 06-06-26 --prefix mainnet/observer-0/
-  scripts/download-snapshot.sh --env testnet --prefix testnet/observer-0/ --latest
-  scripts/download-snapshot.sh --env mainnet --prefix mainnet/observer-0/ --latest --use-s5cmd
+  scripts/download-snapshot.sh --env mainnet --latest
+  scripts/download-snapshot.sh --env mainnet --latest --profile plasma-snapshots
+  scripts/download-snapshot.sh --env mainnet --list
+  scripts/download-snapshot.sh --env mainnet --snapshot 20260606-020000
+  scripts/download-snapshot.sh --env devnet --prefix observer-4/v2/ --latest
+  scripts/download-snapshot.sh --env mainnet --latest --use-s5cmd
 EOF
 }
 
@@ -122,6 +132,7 @@ PROFILE="${AWS_PROFILE:-}"
 REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-2}}"
 PREFIX=""
 FOLDER=""
+SNAPSHOT=""
 DESTDIR=""
 CHUNK_SIZE="$(parse_size 5G)"
 DRY_RUN=0
@@ -155,6 +166,10 @@ while [[ $# -gt 0 ]]; do
     ;;
   --folder)
     FOLDER="${2:-}"
+    shift 2
+    ;;
+  --snapshot)
+    SNAPSHOT="${2:-}"
     shift 2
     ;;
   --dest)
@@ -215,6 +230,14 @@ if [[ -n "$FOLDER" && "$FOLDER" == s3://* ]]; then
 fi
 
 [[ -n "$BUCKET" ]] || die "no default bucket for $ENVIRONMENT; pass --bucket or set PLASMA_${ENVIRONMENT^^}_BACKUPS_BUCKET"
+
+if [[ -n "$SNAPSHOT" ]]; then
+  # Accept 2026-06-06 as well as 20260606 for the date part.
+  if [[ "$SNAPSHOT" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})$ ]]; then
+    SNAPSHOT="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+  fi
+  [[ "$SNAPSHOT" =~ ^[0-9]{8}(-[0-9]{6})?$ ]] || die "--snapshot must be YYYYMMDD-HHMMSS, YYYYMMDD or YYYY-MM-DD, got '$SNAPSHOT'"
+fi
 [[ -n "$DESTDIR" ]] || DESTDIR="./config/$ENVIRONMENT/snapshots"
 ((CHUNK_SIZE > 0)) || die "--chunk-size must be greater than zero"
 
@@ -258,107 +281,131 @@ list_keys() {
     sed '/^None$/d;/^$/d'
 }
 
-discover_snapshot_prefixes() {
+# Snapshot object names: <component>-backup-<YYYYMMDD-HHMMSS>.tar.gz. Capture 1 is the
+# parent prefix (with trailing slash, may be empty), capture 2 the timestamp stamp.
+SNAPSHOT_KEY_RE='^(.*/)?[A-Za-z0-9_.-]+-backup-([0-9]{8}-[0-9]{6})\.tar\.gz$'
+
+# Discovered snapshots are lines of "<stamp>\t<parent prefix>". The stamp is
+# YYYYMMDD-HHMMSS, so a plain byte-wise sort is chronological; the legacy
+# MM-DD-YY folder is never consulted, which is why it does not matter whether
+# objects sit flat under the prefix or inside such a folder.
+discover_snapshots() {
   local prefix="$1"
   declare -A seen=()
-  local key segment current
+  local key
 
   while IFS= read -r key; do
     [[ -n "$key" ]] || continue
-    IFS='/' read -r -a segments <<<"$key"
-    current=""
-    for segment in "${segments[@]}"; do
-      [[ -n "$segment" ]] || continue
-      current+="$segment/"
-      if [[ "$segment" =~ ^[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
-        seen["$current"]=1
-        break
-      fi
-    done
+    [[ "$key" =~ $SNAPSHOT_KEY_RE ]] || continue
+    seen["${BASH_REMATCH[2]}"$'\t'"${BASH_REMATCH[1]}"]=1
   done < <(list_keys "$prefix")
 
   for key in "${!seen[@]}"; do
     printf '%s\n' "$key"
-  done | sort -V
+  done | LC_ALL=C sort
 }
 
-select_snapshot_prefix() {
-  local -a prefixes=("$@")
-  local choice
+snapshot_stamp() {
+  printf '%s\n' "${1%%$'\t'*}"
+}
 
-  [[ "${#prefixes[@]}" -gt 0 ]] || die "no date-style snapshot folders found in s3://$BUCKET/$PREFIX"
+snapshot_parent() {
+  printf '%s\n' "${1#*$'\t'}"
+}
 
-  if [[ "${#prefixes[@]}" -eq 1 ]]; then
-    printf '%s\n' "${prefixes[0]}"
+describe_snapshot() {
+  printf '%s  s3://%s/%s\n' "$(snapshot_stamp "$1")" "$BUCKET" "$(snapshot_parent "$1")"
+}
+
+select_snapshot() {
+  local -a snapshots=("$@")
+  local choice i
+
+  [[ "${#snapshots[@]}" -gt 0 ]] || die "no snapshots (*-backup-YYYYMMDD-HHMMSS.tar.gz) found in s3://$BUCKET/$PREFIX"
+
+  if [[ "${#snapshots[@]}" -eq 1 ]]; then
+    printf '%s\n' "${snapshots[0]}"
     return 0
   fi
 
   if ((LATEST)); then
-    printf '%s\n' "${prefixes[$((${#prefixes[@]} - 1))]}"
+    local newest="${snapshots[$((${#snapshots[@]} - 1))]}"
+    local newest_stamp
+    newest_stamp="$(snapshot_stamp "$newest")"
+    local -a ties=()
+    for i in "${!snapshots[@]}"; do
+      if [[ "$(snapshot_stamp "${snapshots[$i]}")" == "$newest_stamp" ]]; then
+        ties+=("${snapshots[$i]}")
+      fi
+    done
+    if [[ "${#ties[@]}" -gt 1 ]]; then
+      info "Several snapshot sources share the newest timestamp $newest_stamp:"
+      for i in "${!ties[@]}"; do
+        info "  $(describe_snapshot "${ties[$i]}")"
+      done
+      die "pass --prefix to choose a snapshot source"
+    fi
+    printf '%s\n' "$newest"
     return 0
   fi
 
-  if [[ -n "$FOLDER" ]]; then
-    die "multiple folders matched '$FOLDER'; pass --prefix or a full --folder path"
+  if [[ -n "$FOLDER" || -n "$SNAPSHOT" ]]; then
+    die "multiple snapshots matched; narrow with --prefix, a full --snapshot timestamp, or --latest"
   fi
 
-  [[ -t 0 ]] || die "multiple snapshot folders found; pass --folder, --prefix, or --latest"
+  [[ -t 0 ]] || die "multiple snapshots found; pass --snapshot, --prefix, or --latest"
 
-  info "Available snapshot folders in s3://$BUCKET/${PREFIX}:"
-  local i
-  for i in "${!prefixes[@]}"; do
-    printf '%3d) %s\n' "$((i + 1))" "${prefixes[$i]}" >&2
+  info "Available snapshots in s3://$BUCKET/${PREFIX}:"
+  for i in "${!snapshots[@]}"; do
+    printf '%3d) %s\n' "$((i + 1))" "$(describe_snapshot "${snapshots[$i]}")" >&2
   done
 
   while true; do
-    read -r -p "Select snapshot [1-${#prefixes[@]}]: " choice
-    if [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#prefixes[@]})); then
-      printf '%s\n' "${prefixes[$((choice - 1))]}"
+    read -r -p "Select snapshot [1-${#snapshots[@]}]: " choice
+    if [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#snapshots[@]})); then
+      printf '%s\n' "${snapshots[$((choice - 1))]}"
       return 0
     fi
-    info "Enter a number from 1 to ${#prefixes[@]}."
+    info "Enter a number from 1 to ${#snapshots[@]}."
   done
 }
 
-resolve_snapshot_prefix() {
-  local folder normalized match basename
-  local -a prefixes matches
+resolve_snapshot() {
+  local folder parent entry
+  local -a snapshots matches
 
-  mapfile -t prefixes < <(discover_snapshot_prefixes "$PREFIX")
+  mapfile -t snapshots < <(discover_snapshots "$PREFIX")
+  matches=("${snapshots[@]}")
 
-  if [[ -z "$FOLDER" ]]; then
-    select_snapshot_prefix "${prefixes[@]}"
-    return 0
-  fi
-
-  folder="$(trim_slashes "$FOLDER")"
-  matches=()
-
-  if [[ "$folder" == */* ]]; then
-    match="$(ensure_trailing_slash "$folder")"
-    for normalized in "${prefixes[@]}"; do
-      if [[ "$normalized" == "$match" ]]; then
-        matches+=("$normalized")
+  if [[ -n "$SNAPSHOT" ]]; then
+    local -a by_stamp=()
+    for entry in "${matches[@]}"; do
+      if [[ "$(snapshot_stamp "$entry")" == "$SNAPSHOT"* ]]; then
+        by_stamp+=("$entry")
       fi
     done
-    if [[ "${#matches[@]}" -eq 0 ]]; then
-      matches+=("$match")
-    fi
-  else
-    for normalized in "${prefixes[@]}"; do
-      basename="${normalized%/}"
-      basename="${basename##*/}"
-      if [[ "$basename" == "$folder" ]]; then
-        matches+=("$normalized")
+    [[ "${#by_stamp[@]}" -gt 0 ]] || die "no snapshot with timestamp '$SNAPSHOT' in s3://$BUCKET/$PREFIX"
+    matches=("${by_stamp[@]}")
+  fi
+
+  if [[ -n "$FOLDER" ]]; then
+    folder="$(trim_slashes "$FOLDER")"
+    local -a by_folder=()
+    for entry in "${matches[@]}"; do
+      parent="$(snapshot_parent "$entry")"
+      if [[ "$folder" == */* ]]; then
+        # Full prefix: exact match on the parent folder.
+        [[ "$parent" == "$folder/" ]] && by_folder+=("$entry")
+      else
+        # Bare folder name: match the last path segment (legacy MM-DD-YY folders).
+        [[ "$parent" == "$folder/" || "$parent" == */"$folder/" ]] && by_folder+=("$entry")
       fi
     done
+    [[ "${#by_folder[@]}" -gt 0 ]] || die "snapshot folder '$FOLDER' was not found in s3://$BUCKET/$PREFIX"
+    matches=("${by_folder[@]}")
   fi
 
-  if [[ "${#matches[@]}" -eq 0 ]]; then
-    die "snapshot folder '$FOLDER' was not found in s3://$BUCKET/$PREFIX"
-  fi
-
-  select_snapshot_prefix "${matches[@]}"
+  select_snapshot "${matches[@]}"
 }
 
 list_objects_for_prefix() {
@@ -484,7 +531,8 @@ download_object() {
 
 download_with_s5cmd() {
   local snapshot_prefix="$1"
-  local src="s3://$BUCKET/${snapshot_prefix}*.tar.gz"
+  local stamp="$2"
+  local src="s3://$BUCKET/${snapshot_prefix}*-backup-${stamp}.tar.gz"
 
   ensure_login
   mkdir -p "$DESTDIR"
@@ -536,23 +584,30 @@ if ((USE_S5CMD)); then
 fi
 
 if ((LIST_ONLY)); then
-  discover_snapshot_prefixes "$PREFIX"
+  while IFS= read -r entry; do
+    describe_snapshot "$entry"
+  done < <(discover_snapshots "$PREFIX")
   exit 0
 fi
 
-SNAPSHOT_PREFIX="$(resolve_snapshot_prefix)"
-info "Using snapshot prefix: s3://$BUCKET/$SNAPSHOT_PREFIX"
+SELECTED="$(resolve_snapshot)"
+SNAPSHOT_STAMP="$(snapshot_stamp "$SELECTED")"
+SNAPSHOT_PREFIX="$(snapshot_parent "$SELECTED")"
+info "Using snapshot: s3://$BUCKET/${SNAPSHOT_PREFIX}*-backup-${SNAPSHOT_STAMP}.tar.gz"
 info "Destination: $DESTDIR"
 
 if ((USE_S5CMD)); then
-  download_with_s5cmd "$SNAPSHOT_PREFIX"
+  download_with_s5cmd "$SNAPSHOT_PREFIX" "$SNAPSHOT_STAMP"
   exit 0
 fi
 
 info "Chunk size: $(human_bytes "$CHUNK_SIZE")"
 
-mapfile -t OBJECTS < <(list_objects_for_prefix "$SNAPSHOT_PREFIX")
-[[ "${#OBJECTS[@]}" -gt 0 ]] || die "no objects found under s3://$BUCKET/$SNAPSHOT_PREFIX"
+# Only the objects of the selected snapshot: other timestamps share the prefix in
+# the flat layout.
+mapfile -t OBJECTS < <(list_objects_for_prefix "$SNAPSHOT_PREFIX" |
+  grep -E $'^[^\t]*-backup-'"$SNAPSHOT_STAMP"$'\.tar\.gz\t' || true)
+[[ "${#OBJECTS[@]}" -gt 0 ]] || die "no objects found for snapshot $SNAPSHOT_STAMP under s3://$BUCKET/$SNAPSHOT_PREFIX"
 
 for line in "${OBJECTS[@]}"; do
   key="${line%$'\t'*}"
